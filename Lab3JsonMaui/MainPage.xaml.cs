@@ -7,6 +7,7 @@ using Lab3JsonMaui.Models;
 using Lab3JsonMaui.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.Devices;
 
 namespace Lab3JsonMaui
 {
@@ -27,29 +28,38 @@ namespace Lab3JsonMaui
 
         // відкриття JSON через диспетчер файлів
         private async void OnOpenJsonClicked(object sender, EventArgs e)
-        {
-            var options = new PickOptions
-            {
-                PickerTitle = "Виберіть JSON-файл з подіями",
-                FileTypes = FilePickerFileType.Json
-            };
+		{
+			// обирати тільки файли з розширенням .json
+			var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+			{
+				{ DevicePlatform.WinUI,      new[] { ".json" } },
+				{ DevicePlatform.Android,    new[] { ".json" } },
+				{ DevicePlatform.iOS,        new[] { ".json" } },
+				{ DevicePlatform.MacCatalyst,new[] { ".json" } },
+			});
 
-            var result = await FilePicker.Default.PickAsync(options);
+			var options = new PickOptions
+			{
+				PickerTitle = "Виберіть JSON-файл з подіями",
+				FileTypes = customFileType
+			};
 
-            if (result == null)
-                return;
+			var result = await FilePicker.Default.PickAsync(options);
 
-            _currentFilePath = result.FullPath;
+			if (result == null)
+				return;
 
-            var items = await _jsonService.LoadFromFileAsync(_currentFilePath);
-            _allEvents.Clear();
-            _allEvents.AddRange(items);
+			_currentFilePath = result.FullPath;
 
-            ApplyFilter(); // оновити видимий список
+			var items = await _jsonService.LoadFromFileAsync(_currentFilePath);
+			_allEvents.Clear();
+			_allEvents.AddRange(items);
 
-            await DisplayAlert("Файл відкрито",
-                $"Зчитано записів: {_allEvents.Count}", "OK");
-        }
+			ApplyFilter(); // оновити видимий список
+
+			await DisplayAlert("Файл відкрито",
+				$"Зчитано записів: {_allEvents.Count}", "OK");
+		}
 
         // збереження до файлу (той же шлях)
         private async void OnSaveJsonClicked(object sender, EventArgs e)
