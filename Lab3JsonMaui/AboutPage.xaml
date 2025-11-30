@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Lab3JsonMaui.AboutPage"
+             Title="Про програму">
+    <ScrollView Padding="20">
+        <VerticalStackLayout Spacing="10">
+            <Label Text="Лабораторна робота №3"
+                   FontSize="20"
+                   FontAttributes="Bold" />
+            <Label Text="Розробка програм обробки файлів у форматі JSON (диспетчер для JSON)."
+                   FontAttributes="Italic" />
+
+            <Label Text="Про предметну область:" />
+            <Label Text="Програма керує списком подій студентського парламенту: П.І.П. відповідальних осіб, факультет, кафедра, спеціальність, тип заходу, часові рамки та короткий опис." />
+
+            <Label Text="Можливості програми:" FontAttributes="Bold" />
+            <Label Text="• відкриття JSON-файлу через системний диспетчер файлів;
+• зчитування та візуалізація списку у вигляді таблиці;
+• додавання, редагування та видалення записів;
+• збереження змін назад у JSON-файл;
+• пошук із використанням LINQ за трьома критеріями;
+• серіалізація та десеріалізація даних через System.Text.Json." />
+
+            <Label Text="Автор: Zlata Dovbyk"
+                   Margin="0,20,0,0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
