@@ -17,8 +17,9 @@
         </Style>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, Auto, * , Auto"
-          Padding="10">
+    <Grid RowDefinitions="Auto, Auto, *, Auto"
+          Padding="10"
+          BackgroundColor="#181818">
 
         <!-- Верхня панель кнопок -->
         <HorizontalStackLayout Grid.Row="0"
@@ -31,27 +32,39 @@
                     Clicked="OnAboutClicked" />
         </HorizontalStackLayout>
 
-        <!-- Панель пошуку (мінімум 3 критерії через LINQ) -->
+        <!-- Панель пошуку -->
         <Grid Grid.Row="1"
               Margin="0,10,0,10"
               RowDefinitions="Auto, Auto"
               ColumnDefinitions="*,*,*">
             <!-- 1: факультет -->
             <VerticalStackLayout Grid.Row="0" Grid.Column="0">
-                <Label Text="Факультет містить:" />
-                <Entry x:Name="FacultyFilterEntry" Placeholder="наприклад, ФКНК" />
+                <Label Text="Факультет містить:" TextColor="White" />
+                <Entry x:Name="FacultyFilterEntry"
+                       Placeholder="наприклад, ФКНК"
+                       TextColor="White"
+                       PlaceholderColor="#aaaaaa"
+                       BackgroundColor="#303030" />
             </VerticalStackLayout>
 
             <!-- 2: спеціальність -->
             <VerticalStackLayout Grid.Row="0" Grid.Column="1">
-                <Label Text="Спеціальність містить:" />
-                <Entry x:Name="SpecialityFilterEntry" Placeholder="Комп'ютерні науки" />
+                <Label Text="Спеціальність містить:" TextColor="White" />
+                <Entry x:Name="SpecialityFilterEntry"
+                       Placeholder="Комп'ютерні науки"
+                       TextColor="White"
+                       PlaceholderColor="#aaaaaa"
+                       BackgroundColor="#303030" />
             </VerticalStackLayout>
 
             <!-- 3: тип заходу -->
             <VerticalStackLayout Grid.Row="0" Grid.Column="2">
-                <Label Text="Тип заходу містить:" />
-                <Entry x:Name="EventTypeFilterEntry" Placeholder="збори, тренінг..." />
+                <Label Text="Тип заходу містить:" TextColor="White" />
+                <Entry x:Name="EventTypeFilterEntry"
+                       Placeholder="збори, тренінг..."
+                       TextColor="White"
+                       PlaceholderColor="#aaaaaa"
+                       BackgroundColor="#303030" />
             </VerticalStackLayout>
 
             <HorizontalStackLayout Grid.Row="1"
@@ -64,85 +77,109 @@
             </HorizontalStackLayout>
         </Grid>
 
-        <!-- Табличне відображення (Grid усередині елемента списку) -->
+        <!-- Таблиця: заголовок + список подій -->
         <Grid Grid.Row="2"
-              RowDefinitions="Auto, *">
-            <!-- Заголовок таблиці -->
+              RowDefinitions="Auto,*">
+            <!-- Заголовок -->
             <Grid ColumnDefinitions="2*,2*,2*,2*,2*,2*"
-                  BackgroundColor="#eeeeee"
+                  BackgroundColor="#303030"
                   Padding="4">
-                <Label Text="П.І.П." Grid.Column="0" FontAttributes="Bold" />
-                <Label Text="Факультет" Grid.Column="1" FontAttributes="Bold" />
-                <Label Text="Кафедра" Grid.Column="2" FontAttributes="Bold" />
-                <Label Text="Спеціальність" Grid.Column="3" FontAttributes="Bold" />
-                <Label Text="Тип заходу" Grid.Column="4" FontAttributes="Bold" />
-                <Label Text="Часові рамки" Grid.Column="5" FontAttributes="Bold" />
+                <Label Text="П.І.П." Grid.Column="0" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Факультет" Grid.Column="1" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Кафедра" Grid.Column="2" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Спеціальність" Grid.Column="3" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Тип заходу" Grid.Column="4" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Часові рамки" Grid.Column="5" FontAttributes="Bold" TextColor="White" />
             </Grid>
 
-            <!-- Список -->
-            <CollectionView x:Name="EventsCollection"
-                            Grid.Row="1"
-                            SelectionMode="Single"
-                            ItemsSource="{Binding Events}">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid ColumnDefinitions="2*,2*,2*,2*,2*,2*"
-                              Padding="4"
-                              RowSpacing="0">
-                            <Label Text="{Binding FullName}"
-                                   Grid.Column="0" />
-                            <Label Text="{Binding Faculty}"
-                                   Grid.Column="1" />
-                            <Label Text="{Binding Department}"
-                                   Grid.Column="2" />
-                            <Label Text="{Binding Speciality}"
-                                   Grid.Column="3" />
-                            <Label Text="{Binding EventType}"
-                                   Grid.Column="4" />
-                            <Label Text="{Binding TimeFrame}"
-                                   Grid.Column="5" />
-                        </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <!-- Список подій (без CollectionView, через StackLayout) -->
+            <ScrollView Grid.Row="1"
+                        BackgroundColor="#181818">
+                <VerticalStackLayout x:Name="EventsStack"
+                                     Spacing="2"
+                                     Padding="0,2" />
+            </ScrollView>
         </Grid>
 
-        <!-- Форма додавання / редагування -->
+        <!-- Форма редагування -->
         <Border Grid.Row="3"
-                BackgroundColor="#f5f5f5"
-                Stroke="#cccccc"
+                BackgroundColor="#202020"
+                Stroke="#555555"
                 StrokeShape="RoundRectangle 8"
                 Padding="10"
                 Margin="0,10,0,0">
             <VerticalStackLayout>
                 <Label Text="Форма редагування події"
                        FontAttributes="Bold"
-                       Margin="0,0,0,6" />
+                       Margin="0,0,0,6"
+                       TextColor="White" />
 
                 <Grid ColumnDefinitions="*,*"
                       RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
-                    <Label Text="П.І.П." Grid.Row="0" Grid.Column="0" />
-                    <Entry x:Name="FullNameEntry" Grid.Row="0" Grid.Column="1" />
+                    <Label Text="П.І.П."
+                           Grid.Row="0" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="FullNameEntry"
+                           Grid.Row="0" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa" />
 
-                    <Label Text="Факультет" Grid.Row="1" Grid.Column="0" />
-                    <Entry x:Name="FacultyEntry" Grid.Row="1" Grid.Column="1" />
+                    <Label Text="Факультет"
+                           Grid.Row="1" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="FacultyEntry"
+                           Grid.Row="1" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa" />
 
-                    <Label Text="Кафедра" Grid.Row="2" Grid.Column="0" />
-                    <Entry x:Name="DepartmentEntry" Grid.Row="2" Grid.Column="1" />
+                    <Label Text="Кафедра"
+                           Grid.Row="2" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="DepartmentEntry"
+                           Grid.Row="2" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa" />
 
-                    <Label Text="Спеціальність" Grid.Row="3" Grid.Column="0" />
-                    <Entry x:Name="SpecialityEntry" Grid.Row="3" Grid.Column="1" />
+                    <Label Text="Спеціальність"
+                           Grid.Row="3" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="SpecialityEntry"
+                           Grid.Row="3" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa" />
 
-                    <Label Text="Тип заходу" Grid.Row="4" Grid.Column="0" />
-                    <Entry x:Name="EventTypeEntry" Grid.Row="4" Grid.Column="1" />
+                    <Label Text="Тип заходу"
+                           Grid.Row="4" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="EventTypeEntry"
+                           Grid.Row="4" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa" />
 
-                    <Label Text="Часові рамки" Grid.Row="5" Grid.Column="0" />
-                    <Entry x:Name="TimeFrameEntry" Grid.Row="5" Grid.Column="1"
+                    <Label Text="Часові рамки"
+                           Grid.Row="5" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="TimeFrameEntry"
+                           Grid.Row="5" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa"
                            Placeholder="дата / час, напр. 10.10.2025 16:00-18:00" />
 
-                    <Label Text="Опис" Grid.Row="6" Grid.Column="0" />
-                    <Entry x:Name="DescriptionEntry" Grid.Row="6" Grid.Column="1" />
+                    <Label Text="Опис"
+                           Grid.Row="6" Grid.Column="0"
+                           TextColor="White" />
+                    <Entry x:Name="DescriptionEntry"
+                           Grid.Row="6" Grid.Column="1"
+                           TextColor="White"
+                           BackgroundColor="#303030"
+                           PlaceholderColor="#aaaaaa" />
                 </Grid>
 
                 <HorizontalStackLayout HorizontalOptions="End">

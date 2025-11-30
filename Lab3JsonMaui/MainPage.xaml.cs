@@ -1,24 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using Lab3JsonMaui.Models;
 using Lab3JsonMaui.Services;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
+using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Storage;
 
 namespace Lab3JsonMaui
 {
     public partial class MainPage : ContentPage
     {
-        // колекція для прив'язки до CollectionView
-        public ObservableCollection<ParliamentEvent> Events { get; } = new();
-
         private readonly JsonStorageService _jsonService = new();
-        private readonly List<ParliamentEvent> _allEvents = new(); 
-        private string? _currentFilePath; 
+
+        // повний список усіх подій
+        private readonly List<ParliamentEvent> _allEvents = new();
+
+        private string? _currentFilePath;
+
+        // поточний вибраний елемент + його візуальний рядок
+        private ParliamentEvent? _selectedEvent;
+        private View? _selectedRowView;
 
         public MainPage()
         {
@@ -26,10 +29,9 @@ namespace Lab3JsonMaui
             BindingContext = this;
         }
 
-        // відкриття JSON через диспетчер файлів
+		// робота з файлом JSON
         private async void OnOpenJsonClicked(object sender, EventArgs e)
 		{
-			// обирати тільки файли з розширенням .json
 			var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
 			{
 				{ DevicePlatform.WinUI,      new[] { ".json" } },
@@ -45,7 +47,6 @@ namespace Lab3JsonMaui
 			};
 
 			var result = await FilePicker.Default.PickAsync(options);
-
 			if (result == null)
 				return;
 
@@ -55,13 +56,12 @@ namespace Lab3JsonMaui
 			_allEvents.Clear();
 			_allEvents.AddRange(items);
 
-			ApplyFilter(); // оновити видимий список
+			ApplyFilter();
 
 			await DisplayAlert("Файл відкрито",
 				$"Зчитано записів: {_allEvents.Count}", "OK");
 		}
 
-        // збереження до файлу (той же шлях)
         private async void OnSaveJsonClicked(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(_currentFilePath))
@@ -78,13 +78,12 @@ namespace Lab3JsonMaui
                 "OK");
         }
 
-        // перехід на сторінку 'про програму'
         private async void OnAboutClicked(object sender, EventArgs e)
         {
             await Shell.Current.GoToAsync(nameof(AboutPage));
         }
 
-        // LINQ-фільтрація
+        // фільтрація (LINQ)
         private void OnApplyFilterClicked(object sender, EventArgs e)
         {
             ApplyFilter();
@@ -124,19 +123,80 @@ namespace Lab3JsonMaui
                     ev.EventType.Contains(eventType, StringComparison.OrdinalIgnoreCase));
             }
 
-            Events.Clear();
-            foreach (var item in query)
+            RefreshEventsView(query.ToList());
+        }
+
+        // візуалізація списку в EventsStack 
+        private void RefreshEventsView(List<ParliamentEvent> items)
+        {
+            EventsStack.Children.Clear();
+            _selectedEvent = null;
+            _selectedRowView = null;
+
+            foreach (var ev in items)
             {
-                Events.Add(item);
+                var row = CreateRowForEvent(ev);
+                EventsStack.Children.Add(row);
             }
         }
 
-        // робота з формою (додавання / редагування / видалення)
-
-        private ParliamentEvent? GetSelectedEvent()
+        private View CreateRowForEvent(ParliamentEvent ev)
         {
-            return EventsCollection.SelectedItem as ParliamentEvent;
+            var grid = new Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) }
+                },
+                Padding = 4,
+                Margin = new Thickness(0, 1),
+                BackgroundColor = Color.FromArgb("#202020")
+            };
+
+            grid.Add(new Label { Text = ev.FullName, TextColor = Colors.White, FontSize = 14 }, 0, 0);
+            grid.Add(new Label { Text = ev.Faculty, TextColor = Colors.White, FontSize = 14 }, 1, 0);
+            grid.Add(new Label { Text = ev.Department, TextColor = Colors.White, FontSize = 14 }, 2, 0);
+            grid.Add(new Label { Text = ev.Speciality, TextColor = Colors.White, FontSize = 14 }, 3, 0);
+            grid.Add(new Label { Text = ev.EventType, TextColor = Colors.White, FontSize = 14 }, 4, 0);
+            grid.Add(new Label { Text = ev.TimeFrame, TextColor = Colors.White, FontSize = 14 }, 5, 0);
+
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (_, _) => OnEventRowTapped(ev, grid);
+            grid.GestureRecognizers.Add(tap);
+
+            return grid;
         }
+
+        private void OnEventRowTapped(ParliamentEvent ev, Grid rowView)
+        {
+            // зняти виділення з попереднього рядка
+            if (_selectedRowView is Grid oldGrid)
+                oldGrid.BackgroundColor = Color.FromArgb("#202020");
+
+            _selectedEvent = ev;
+            _selectedRowView = rowView;
+            rowView.BackgroundColor = Color.FromArgb("#404040");
+
+            FillFormFromEvent(ev);
+        }
+
+        private void FillFormFromEvent(ParliamentEvent ev)
+        {
+            FullNameEntry.Text = ev.FullName;
+            FacultyEntry.Text = ev.Faculty;
+            DepartmentEntry.Text = ev.Department;
+            SpecialityEntry.Text = ev.Speciality;
+            EventTypeEntry.Text = ev.EventType;
+            TimeFrameEntry.Text = ev.TimeFrame;
+            DescriptionEntry.Text = ev.Description;
+        }
+
+        // форма: очищення / додавання / редагування / видалення
 
         private void OnClearFormClicked(object sender, EventArgs e)
         {
@@ -153,7 +213,12 @@ namespace Lab3JsonMaui
             TimeFrameEntry.Text = string.Empty;
             DescriptionEntry.Text = string.Empty;
 
-            EventsCollection.SelectedItem = null;
+            _selectedEvent = null;
+
+            if (_selectedRowView is Grid oldGrid)
+                oldGrid.BackgroundColor = Color.FromArgb("#202020");
+
+            _selectedRowView = null;
         }
 
         private async void OnAddClicked(object sender, EventArgs e)
@@ -171,8 +236,7 @@ namespace Lab3JsonMaui
 
         private async void OnEditClicked(object sender, EventArgs e)
         {
-            var selected = GetSelectedEvent();
-            if (selected == null)
+            if (_selectedEvent == null)
             {
                 await DisplayAlert("Увага", "Оберіть запис у таблиці для редагування.", "OK");
                 return;
@@ -182,31 +246,25 @@ namespace Lab3JsonMaui
             if (updated == null)
                 return;
 
-            // перезапис полів вибраного об'єкта
-            selected.FullName = updated.FullName;
-            selected.Faculty = updated.Faculty;
-            selected.Department = updated.Department;
-            selected.Speciality = updated.Speciality;
-            selected.EventType = updated.EventType;
-            selected.TimeFrame = updated.TimeFrame;
-            selected.Description = updated.Description;
+            _selectedEvent.FullName = updated.FullName;
+            _selectedEvent.Faculty = updated.Faculty;
+            _selectedEvent.Department = updated.Department;
+            _selectedEvent.Speciality = updated.Speciality;
+            _selectedEvent.EventType = updated.EventType;
+            _selectedEvent.TimeFrame = updated.TimeFrame;
+            _selectedEvent.Description = updated.Description;
 
-            // синхронізація _allEvents (по Id)
-            var index = _allEvents.FindIndex(ev => ev.Id == selected.Id);
+            var index = _allEvents.FindIndex(ev => ev.Id == _selectedEvent.Id);
             if (index >= 0)
-            {
-                _allEvents[index] = selected;
-            }
+                _allEvents[index] = _selectedEvent;
 
             ApplyFilter();
-
             await DisplayAlert("Змінено", "Дані події оновлено.", "OK");
         }
 
         private async void OnDeleteClicked(object sender, EventArgs e)
         {
-            var selected = GetSelectedEvent();
-            if (selected == null)
+            if (_selectedEvent == null)
             {
                 await DisplayAlert("Увага", "Оберіть запис у таблиці для видалення.", "OK");
                 return;
@@ -218,12 +276,11 @@ namespace Lab3JsonMaui
             if (!confirm)
                 return;
 
-            _allEvents.RemoveAll(ev => ev.Id == selected.Id);
+            _allEvents.RemoveAll(ev => ev.Id == _selectedEvent.Id);
             ApplyFilter();
             ClearForm();
         }
 
-        // створення об'єкта з полів форми, базова валідація
         private ParliamentEvent? BuildEventFromForm()
         {
             string fullName = FullNameEntry.Text?.Trim() ?? string.Empty;
@@ -254,34 +311,6 @@ namespace Lab3JsonMaui
                 TimeFrame = timeFrame,
                 Description = description
             };
-        }
-
-        // користувач клацає по елементу списку – заповнення форми
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-            EventsCollection.SelectionChanged += EventsCollection_SelectionChanged;
-        }
-
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-            EventsCollection.SelectionChanged -= EventsCollection_SelectionChanged;
-        }
-
-        private void EventsCollection_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-        {
-            var selected = GetSelectedEvent();
-            if (selected == null)
-                return;
-
-            FullNameEntry.Text = selected.FullName;
-            FacultyEntry.Text = selected.Faculty;
-            DepartmentEntry.Text = selected.Department;
-            SpecialityEntry.Text = selected.Speciality;
-            EventTypeEntry.Text = selected.EventType;
-            TimeFrameEntry.Text = selected.TimeFrame;
-            DescriptionEntry.Text = selected.Description;
         }
     }
 }
